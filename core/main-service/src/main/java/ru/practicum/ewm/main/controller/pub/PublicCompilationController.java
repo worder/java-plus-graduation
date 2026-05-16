@@ -3,6 +3,7 @@ package ru.practicum.ewm.main.controller.pub;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.PositiveOrZero;
 import lombok.AllArgsConstructor;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.ewm.main.dto.compilation.CompilationDto;
 import ru.practicum.ewm.main.service.compilation.CompilationService;
@@ -12,6 +13,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/compilations")
 @AllArgsConstructor
+@Validated
 public class PublicCompilationController {
     CompilationService compilationService;
 

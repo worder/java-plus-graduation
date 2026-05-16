@@ -3,6 +3,7 @@ package ru.practicum.ewm.main.controller.pub;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.PositiveOrZero;
 import lombok.AllArgsConstructor;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.ewm.main.dto.category.CategoryDto;
 import ru.practicum.ewm.main.service.category.CategoryService;
@@ -12,6 +13,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/categories")
 @AllArgsConstructor
+@Validated
 public class PublicCategoryController {
     private final CategoryService categoryService;
 

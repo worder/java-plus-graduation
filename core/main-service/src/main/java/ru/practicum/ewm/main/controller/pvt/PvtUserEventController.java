@@ -5,6 +5,7 @@ import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.PositiveOrZero;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.ewm.main.dto.event.EventFullDto;
 import ru.practicum.ewm.main.dto.event.EventShortDto;
@@ -21,6 +22,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/users/{userId}/events")
 @AllArgsConstructor
+@Validated
 public class PvtUserEventController {
     private final EventService eventService;
     private final ParticipationRequestService requestService;
