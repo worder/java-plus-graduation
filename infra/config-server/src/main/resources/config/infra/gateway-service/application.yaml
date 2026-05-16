@@ -12,7 +12,7 @@ spring:
                 name: commonCircuitBreaker
                 fallbackUri: forward:/fallback
 
-        - id: main-service-admin
+        - id: main-service-users
           uri: lb://main-service
           predicates:
             - Path=/users/**
@@ -61,6 +61,24 @@ spring:
               args:
                 name: commonCircuitBreaker
                 fallbackUri: forward:/fallback
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,gateway
+  endpoint:
+    health:
+      probes:
+        enabled: true
+    gateway:
+      enabled: true
+      access: "read-only"
+  health:
+    livenessstate:
+      enabled: true
+    readinessstate:
+      enabled: true
 
 resilience4j:
   circuitbreaker:
