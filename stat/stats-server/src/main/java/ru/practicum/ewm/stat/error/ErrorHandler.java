@@ -8,6 +8,7 @@ import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 import ru.practicum.ewm.stat.error.exception.BadRequestException;
 
 import java.io.PrintWriter;
@@ -32,6 +33,12 @@ public class ErrorHandler {
                 .toList();
 
         return new ErrorResponse("Validation error", String.join("; ", errors));
+    }
+
+    @ExceptionHandler(NoResourceFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ErrorResponse handleNotFound(NoResourceFoundException e) {
+        return new ErrorResponse("Resource not found", e.getMessage());
     }
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
