@@ -1,0 +1,90 @@
+spring:
+  cloud:
+    gateway:
+      routes:
+        - id: main-service-admin
+          uri: lb://main-service
+          predicates:
+            - Path=/admin/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: commonCircuitBreaker
+                fallbackUri: forward:/fallback
+
+        - id: main-service-admin
+          uri: lb://main-service
+          predicates:
+            - Path=/users/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: commonCircuitBreaker
+                fallbackUri: forward:/fallback
+
+        - id: main-service-categories
+          uri: lb://main-service
+          predicates:
+            - Path=/categories/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: commonCircuitBreaker
+                fallbackUri: forward:/fallback
+
+        - id: main-service-comments
+          uri: lb://main-service
+          predicates:
+            - Path=/comments/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: commonCircuitBreaker
+                fallbackUri: forward:/fallback
+
+        - id: main-service-compilations
+          uri: lb://main-service
+          predicates:
+            - Path=/compilations/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: commonCircuitBreaker
+                fallbackUri: forward:/fallback
+
+        - id: main-service-events
+          uri: lb://main-service
+          predicates:
+            - Path=/events/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: commonCircuitBreaker
+                fallbackUri: forward:/fallback
+
+resilience4j:
+  circuitbreaker:
+    configs:
+      default:
+        slidingWindowType: COUNT_BASED
+        slidingWindowSize: 20
+        minimumNumberOfCalls: 10
+        failureRateThreshold: 50
+        slowCallRateThreshold: 50
+        slowCallDurationThreshold: 2s
+        waitDurationInOpenState: 10s
+        permittedNumberOfCallsInHalfOpenState: 5
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+
+    instances:
+      commonCircuitBreaker:
+        baseConfig: default
+
+  timelimiter:
+    configs:
+      default:
+        timeoutDuration: 3s
+
+    instances:
+      commonCircuitBreaker:
+        baseConfig: default

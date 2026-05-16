@@ -2,10 +2,19 @@ package ru.practicum.ewm.stat.client;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cloud.client.ServiceInstance;
+import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
+import org.springframework.retry.backoff.FixedBackOffPolicy;
+import org.springframework.retry.policy.MaxAttemptsRetryPolicy;
+import org.springframework.retry.support.RetryTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.DefaultUriBuilderFactory;
@@ -22,11 +31,38 @@ import java.util.Map;
 public class StatClient extends BaseClient {
     private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
-    public StatClient(@Value("${stat-server.url:http://localhost:9090}") String serverUrl) {
-        super(buildRestTemplate(serverUrl));
+    private final DiscoveryClient discoveryClient;
+    private final RetryTemplate retryTemplate;
+
+    public StatClient(DiscoveryClient discoveryClient) {
+        this.retryTemplate = new RetryTemplate();
+        this.discoveryClient = discoveryClient;
+
+        FixedBackOffPolicy fixedBackOffPolicy = new FixedBackOffPolicy();
+        fixedBackOffPolicy.setBackOffPeriod(3000L);
+        this.retryTemplate.setBackOffPolicy(fixedBackOffPolicy);
+
+        MaxAttemptsRetryPolicy retryPolicy = new MaxAttemptsRetryPolicy();
+        retryPolicy.setMaxAttempts(3);
+        this.retryTemplate.setRetryPolicy(retryPolicy);
     }
 
-    private static RestTemplate buildRestTemplate(String serverUrl) {
+    private ServiceInstance getInstance() {
+        try {
+            return discoveryClient
+                    .getInstances("stat-server")
+                    .getFirst();
+        } catch (Exception exception) {
+            throw new RuntimeException("Failed to discover stat-server address", exception);
+        }
+    }
+
+    @Override
+    protected RestTemplate buildResttemplate() {
+        ServiceInstance instance = retryTemplate.execute(cxt -> getInstance());
+        String serverUrl =  "http://" + instance.getHost() + ":" + instance.getPort();
+        log.info("stat-server URL: {}", serverUrl);
+
         RestTemplate restTemplate = new RestTemplate();
 
         SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
@@ -88,7 +124,8 @@ public class StatClient extends BaseClient {
                 ObjectMapper mapper = new ObjectMapper();
                 List<StatEventViewDto> result = mapper.convertValue(
                         response.getBody(),
-                        new TypeReference<List<StatEventViewDto>>() {}
+                        new TypeReference<List<StatEventViewDto>>() {
+                        }
                 );
                 log.debug("Получено {} записей статистики", result.size());
                 return result;
