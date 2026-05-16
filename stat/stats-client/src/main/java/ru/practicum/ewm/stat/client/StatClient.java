@@ -50,7 +50,7 @@ public class StatClient extends BaseClient {
     private ServiceInstance getInstance() {
         try {
             return discoveryClient
-                    .getInstances("stat-server")
+                    .getInstances("stats-server")
                     .getFirst();
         } catch (Exception exception) {
             throw new RuntimeException("Failed to discover stat-server address", exception);

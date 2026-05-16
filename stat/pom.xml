@@ -41,8 +41,8 @@
     </dependencies>
 
     <modules>
-        <module>stat-server</module>
-        <module>stat-client</module>
-        <module>stat-dto</module>
+        <module>stats-server</module>
+        <module>stats-client</module>
+        <module>stats-dto</module>
     </modules>
 </project>

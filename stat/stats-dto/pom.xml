@@ -9,5 +9,5 @@
         <version>0.0.1-SNAPSHOT</version>
     </parent>
 
-    <artifactId>stat-dto</artifactId>
+    <artifactId>stats-dto</artifactId>
 </project>
