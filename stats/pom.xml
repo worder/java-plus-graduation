@@ -5,9 +5,16 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>ru.practicum</groupId>
-        <artifactId>stat</artifactId>
+        <artifactId>java-plus-graduation</artifactId>
         <version>0.0.1-SNAPSHOT</version>
     </parent>
 
-    <artifactId>stats-dto</artifactId>
+    <artifactId>stats</artifactId>
+    <packaging>pom</packaging>
+
+    <modules>
+        <module>stats-server</module>
+        <module>stats-client</module>
+        <module>stats-dto</module>
+    </modules>
 </project>

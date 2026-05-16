@@ -13,7 +13,7 @@
 	<name>Java plus Graduation</name>
     <modules>
         <module>core</module>
-        <module>stat</module>
+        <module>stats</module>
 		<module>infra</module>
     </modules>
 
