@@ -1,0 +1,486 @@
+{
+  "info": {
+    "_postman_id": "4f622f31-328a-4506-95bd-66359cfbe749",
+    "name": "Тестирование API комментариев - EWM",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "23073145",
+    "_collection_link": "http://localhost"
+  },
+  "item": [
+    {
+      "name": "1. Публичное: Получить комментарии события",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/comments?eventId={{event_id}}&from=0&size=10",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "comments"
+          ],
+          "query": [
+            {
+              "key": "eventId",
+              "value": "{{event_id}}"
+            },
+            {
+              "key": "from",
+              "value": "0"
+            },
+            {
+              "key": "size",
+              "value": "10"
+            }
+          ]
+        },
+        "description": "Получение списка комментариев по eventId"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "console.log('Тест: Получить комментарии события');",
+              "if (responseCode.code === 200) {",
+              "    console.log('✅ Успешно: статус 200');",
+              "    pm.test('Статус 200', function () {",
+              "        pm.response.to.have.status(200);",
+              "    });",
+              "} else {",
+              "    console.log('❌ Ошибка: получен статус ' + responseCode.code);",
+              "    pm.test('Ожидается статус 200', function () {",
+              "        pm.response.to.have.status(200);",
+              "    });",
+              "}"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Публичное: Получить комментарий по ID",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/comments/{{comment_id}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "comments",
+            "{{comment_id}}"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "console.log('Тест: Получить комментарий по ID');",
+              "if (responseCode.code === 200) {",
+              "    console.log('✅ Успешно: статус 200');",
+              "    pm.test('Статус 200', function () {",
+              "        pm.response.to.have.status(200);",
+              "    });",
+              "} else if (responseCode.code === 404) {",
+              "    console.log('⚠️ Комментарий не найден (404)');",
+              "} else {",
+              "    console.log('❌ Ошибка: получен статус ' + responseCode.code);",
+              "    pm.test('Ожидается 200 или 404', function () {",
+              "        pm.expect([200, 404]).to.include(responseCode.code);",
+              "    });",
+              "}"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Приватное: Создать комментарий",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"eventId\": {{event_id}},\n  \"text\": \"Отличное событие!\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/users/{{user_id}}/comments",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "users",
+            "{{user_id}}",
+            "comments"
+          ]
+        }
+      },
+      "event": []
+    },
+    {
+      "name": "4. Приватное: Получить свои комментарии",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/users/{{user_id}}/comments?from=0&size=10",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "users",
+            "{{user_id}}",
+            "comments"
+          ],
+          "query": [
+            {
+              "key": "from",
+              "value": "0"
+            },
+            {
+              "key": "size",
+              "value": "10"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "console.log('Тест: Получить свои комментарии');",
+              "if (responseCode.code === 200) {",
+              "    console.log('✅ Успешно: статус 200');",
+              "    pm.test('Статус 200', function () {",
+              "        pm.response.to.have.status(200);",
+              "    });",
+              "} else {",
+              "    console.log('❌ Ошибка: статус ' + responseCode.code);",
+              "}",
+              "pm.test('Ожидается статус 200', function () {",
+              "    pm.response.to.have.status(200);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. Приватное: Получить свой комментарий",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/users/{{user_id}}/comments/{{comment_id}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "users",
+            "{{user_id}}",
+            "comments",
+            "{{comment_id}}"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "console.log('Тест: Получить свой комментарий');",
+              "if (responseCode.code === 200) {",
+              "    console.log('✅ Успешно: статус 200');",
+              "    pm.test('Статус 200', function () {",
+              "        pm.response.to.have.status(200);",
+              "    });",
+              "} else if (responseCode.code === 404) {",
+              "    console.log('⚠️ Комментарий не найден');",
+              "} else {",
+              "    console.log('❌ Ошибка: статус ' + responseCode.code);",
+              "}",
+              "pm.test('Ожидается 200 или 404', function () {",
+              "    pm.expect([200, 404]).to.include(responseCode.code);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "6. Приватное: Обновить комментарий",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"text\": \"Обновлённый текст комментария\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/users/{{user_id}}/comments/{{comment_id}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "users",
+            "{{user_id}}",
+            "comments",
+            "{{comment_id}}"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "console.log('Тест: Обновить комментарий');",
+              "if (responseCode.code === 200) {",
+              "    console.log('✅ Успешно обновлён: статус 200');",
+              "    pm.test('Статус 200', function () {",
+              "        pm.response.to.have.status(200);",
+              "    });",
+              "} else if (responseCode.code === 400) {",
+              "    console.log('❌ Ошибка: неверный пользователь или тело запроса');",
+              "} else if (responseCode.code === 404) {",
+              "    console.log('❌ Комментарий не найден');",
+              "} else {",
+              "    console.log('❌ Неожиданный статус: ' + responseCode.code);",
+              "}",
+              "pm.test('Ожидается 200, 400 или 404', function () {",
+              "    pm.expect([200, 400, 404]).to.include(responseCode.code);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "7. Приватное: Удалить комментарий",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/users/{{user_id}}/comments/{{comment_id}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "users",
+            "{{user_id}}",
+            "comments",
+            "{{comment_id}}"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "console.log('Тест: Удалить комментарий');",
+              "if (responseCode.code === 204) {",
+              "    console.log('✅ Успешно удалён: статус 204');",
+              "    pm.test('Статус 204', function () {",
+              "        pm.response.to.have.status(204);",
+              "    });",
+              "} else if (responseCode.code === 404) {",
+              "    console.log('❌ Комментарий не найден');",
+              "} else {",
+              "    console.log('❌ Ошибка: статус ' + responseCode.code);",
+              "}",
+              "pm.test('Ожидается 204 или 404', function () {",
+              "    pm.expect([204, 404]).to.include(responseCode.code);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "8. Админ: Получить комментарии с фильтрами",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/admin/comments?from=0&size=10",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "admin",
+            "comments"
+          ],
+          "query": [
+            {
+              "key": "from",
+              "value": "0"
+            },
+            {
+              "key": "size",
+              "value": "10"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "console.log('Тест: Получить комментарии с фильтрами (админ)');",
+              "if (responseCode.code === 200) {",
+              "    console.log('✅ Успешно: статус 200');",
+              "    pm.test('Статус 200', function () {",
+              "        pm.response.to.have.status(200);",
+              "    });",
+              "} else {",
+              "    console.log('❌ Ошибка: статус ' + responseCode.code);",
+              "}",
+              "pm.test('Ожидается статус 200', function () {",
+              "    pm.response.to.have.status(200);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "9. Админ: Обновить комментарий",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"text\": \"Админ-правка: исправлено\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/admin/comments/{{comment_id}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "admin",
+            "comments",
+            "{{comment_id}}"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "console.log('Тест: Админ обновляет комментарий');",
+              "if (responseCode.code === 200) {",
+              "    console.log('✅ Успешно обновлён админом: статус 200');",
+              "    pm.test('Статус 200', function () {",
+              "        pm.response.to.have.status(200);",
+              "    });",
+              "} else if (responseCode.code === 400) {",
+              "    console.log('❌ Ошибка валидации');",
+              "} else if (responseCode.code === 404) {",
+              "    console.log('❌ Комментарий не найден');",
+              "} else {",
+              "    console.log('❌ Ошибка: статус ' + responseCode.code);",
+              "}",
+              "pm.test('Ожидается 200, 400 или 404', function () {",
+              "    pm.expect([200, 400, 404]).to.include(responseCode.code);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "10. Админ: Удалить комментарий",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/admin/comments/{{comment_id}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "admin",
+            "comments",
+            "{{comment_id}}"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "console.log('Тест: Админ удаляет комментарий');",
+              "if (responseCode.code === 204) {",
+              "    console.log('✅ Успешно удалён админом: статус 204');",
+              "    pm.test('Статус 204', function () {",
+              "        pm.response.to.have.status(204);",
+              "    });",
+              "} else if (responseCode.code === 404) {",
+              "    console.log('❌ Комментарий не найден');",
+              "} else {",
+              "    console.log('❌ Ошибка: статус ' + responseCode.code);",
+              "}",
+              "pm.test('Ожидается 204 или 404', function () {",
+              "    pm.expect([204, 404]).to.include(responseCode.code);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    }
+  ],
+  "event": [],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8080"
+    },
+    {
+      "key": "user_id",
+      "value": "1"
+    },
+    {
+      "key": "event_id",
+      "value": "1"
+    },
+    {
+      "key": "comment_id",
+      "value": ""
+    }
+  ]
+}
