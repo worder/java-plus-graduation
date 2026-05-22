@@ -11,7 +11,7 @@ spring:
     init:
       mode: always
   datasource:
-    url: jdbc:postgresql://localhost:6542/main-db
+    url: jdbc:postgresql://localhost:6544/ewm
     driverClassName: org.postgresql.Driver
     username: ewm
     password: ewm

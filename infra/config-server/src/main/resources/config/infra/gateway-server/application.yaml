@@ -5,65 +5,74 @@ spring:
   cloud:
     gateway:
       routes:
-        - id: main-service-admin
-          uri: lb://main-service
+        # user-service routes
+        - id: user-service
+          uri: lb://user-service
           predicates:
-            - Path=/admin/**
-          filters:
-            - name: CircuitBreaker
-              args:
-                name: commonCircuitBreaker
-                fallbackUri: forward:/fallback
+            - Path=/admin/users/**
 
-        - id: main-service-users
-          uri: lb://main-service
+        # request service routes
+        - id: request-service-events-requests
+          uri: lb://request-service
           predicates:
-            - Path=/users/**
-          filters:
-            - name: CircuitBreaker
-              args:
-                name: commonCircuitBreaker
-                fallbackUri: forward:/fallback
+            - Path=/users/{userId}/events/{eventId}/requests/**
 
-        - id: main-service-categories
-          uri: lb://main-service
+        - id: request-service-user-requests
+          uri: lb://request-service
+          predicates:
+            - Path=/users/{userId}/requests/**
+
+        # event-service routes
+        - id: event-service-admin-categories
+          uri: lb://event-service
+          predicates:
+            - Path=/admin/categories/**
+
+        - id: event-service-categories
+          uri: lb://event-service
           predicates:
             - Path=/categories/**
-          filters:
-            - name: CircuitBreaker
-              args:
-                name: commonCircuitBreaker
-                fallbackUri: forward:/fallback
 
-        - id: main-service-comments
-          uri: lb://main-service
+        - id: event-service-admin-compilations
+          uri: lb://event-service
           predicates:
-            - Path=/comments/**
-          filters:
-            - name: CircuitBreaker
-              args:
-                name: commonCircuitBreaker
-                fallbackUri: forward:/fallback
+            - Path=/admin/compilations/**
 
-        - id: main-service-compilations
-          uri: lb://main-service
+        - id: event-service-compilations
+          uri: lb://event-service
           predicates:
             - Path=/compilations/**
-          filters:
-            - name: CircuitBreaker
-              args:
-                name: commonCircuitBreaker
-                fallbackUri: forward:/fallback
 
-        - id: main-service-events
-          uri: lb://main-service
+        - id: event-service-admin-events
+          uri: lb://event-service
+          predicates:
+            - Path=/admin/events/**
+
+        - id: event-service-events
+          uri: lb://event-service
           predicates:
             - Path=/events/**
-          filters:
-            - name: CircuitBreaker
-              args:
-                name: commonCircuitBreaker
-                fallbackUri: forward:/fallback
+
+        - id: event-service-user-events
+          uri: lb://event-service
+          predicates:
+            - Path=/users/{userId}/events/**
+
+        # comment-service routes (feature)
+        - id: comment-service-admin
+          uri: lb://comment-service
+          predicates:
+            - Path=/admin/comments/**
+
+        - id: comment-service-public
+          uri: lb://comment-service
+          predicates:
+            - Path=/comments/**
+
+        - id: comment-service-private
+          uri: lb://comment-service
+          predicates:
+            - Path=/users/{userId}/comments
 
 management:
   endpoints:
