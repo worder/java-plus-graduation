@@ -23,9 +23,9 @@ public class PvtEventRequestController {
         return requestService.getParticipationRequestsForUserEvent(userId, eventId);
     }
 
-    @GetMapping("{eventId}/request")
+    @GetMapping("/{eventId}/request")
     public ParticipationRequestDto getEventParticipationRequest(@PathVariable Long userId,
-                                                                @RequestParam Long eventId) {
+                                                                @PathVariable Long eventId) {
         return requestService.getRequesterParticipationRequest(userId, eventId);
     }
 

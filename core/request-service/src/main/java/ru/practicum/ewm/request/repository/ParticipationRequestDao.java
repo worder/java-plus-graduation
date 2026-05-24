@@ -13,6 +13,8 @@ public interface ParticipationRequestDao {
 
     Optional<ParticipationRequest> findByEventIdAndRequesterId(Long eventId, Long userId);
 
+    Optional<ParticipationRequest> findByIdAndRequesterId(Long requestId, Long userId);
+
     Optional<ParticipationRequest> findById(Long id);
 
     List<ParticipationRequest> findByRequesterId(Long requesterId);

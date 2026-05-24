@@ -172,7 +172,7 @@ public class CommentServiceImpl implements CommentService {
         Comment comment = commentDao.findById(commentId)
                 .orElseThrow(() -> new NotFoundException("Comment ID:" + commentId + " not found"));
 
-        if (comment.getAuthorId().equals(userId)) {
+        if (!comment.getAuthorId().equals(userId)) {
             throw new BadRequestException("Invalid user id:" + comment.getAuthorId() + "; user not author");
         }
 

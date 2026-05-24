@@ -177,8 +177,10 @@ public class ParticipationRequestServiceImpl implements ParticipationRequestServ
 
     @Override
     public ParticipationRequestDto getRequesterParticipationRequest(Long requesterId, Long requestId) {
-        return ParticipationRequestMapper.mapToParticipationRequestDto(participationRequestDao
-                .findByEventIdAndRequesterId(requesterId, requesterId)
-                .orElseThrow(() -> new NotFoundException("Participation request not found")));
+        ParticipationRequest request = participationRequestDao
+                .findByIdAndRequesterId(requestId, requesterId)
+                .orElseThrow(() -> new NotFoundException("Participation request not found"));
+
+        return ParticipationRequestMapper.mapToParticipationRequestDto(request);
     }
 }
