@@ -12,7 +12,6 @@ import ru.practicum.ewm.event.mapper.EventMapper;
 import ru.practicum.ewm.event.repository.category.CategoryDao;
 import ru.practicum.ewm.event.repository.event.EventDao;
 import ru.practicum.ewm.event.repository.event.EventQdslDao;
-import ru.practicum.ewm.interaction.client.statistics.StatisticsClient;
 import ru.practicum.ewm.interaction.client.user.UserClient;
 import ru.practicum.ewm.interaction.dto.category.CategoryDto;
 import ru.practicum.ewm.interaction.dto.event.*;
@@ -37,7 +36,6 @@ public class EventServiceImpl implements EventService {
     private final EventQdslDao eventQdslDao;
     private final CategoryDao categoryDao;
     private final UserClient userClient;
-    private final StatisticsClient statisticsClient;
 
     @Override
     @Transactional
@@ -253,14 +251,14 @@ public class EventServiceImpl implements EventService {
                 .min(LocalDateTime::compareTo)
                 .orElse(null);
 
-        statisticsClient.populateWithViews(start, dtos);
+//        statisticsClient.populateWithViews(start, dtos);
         return dtos;
     }
 
     private EventFullDto mapToFullDto(Event event) {
         EventMapper mapper = initMapperForEvents(List.of(event));
         EventFullDto dto = mapper.mapToFullDto(event);
-        statisticsClient.populateWithViews(dto);
+//        statisticsClient.populateWithViews(dto);
         return dto;
     }
 
@@ -270,7 +268,7 @@ public class EventServiceImpl implements EventService {
                 .map(mapper::mapToFullDto)
                 .toList();
 
-        statisticsClient.populateWithViews(dtos);
+//        statisticsClient.populateWithViews(dtos);
         return dtos;
     }
 
