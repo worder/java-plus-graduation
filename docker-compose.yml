@@ -3,7 +3,7 @@ services:
   kafka:
     image: confluentinc/confluent-local:7.4.3
     hostname: kafka
-    container_name: kafka
+    container_name: kafka-grad
     ports:
       - "9092:9092" # for client connections
       - "9101:9101" # JMX
@@ -20,7 +20,7 @@ services:
 
   kafka-init-topics:
     image: confluentinc/confluent-local:7.4.3
-    container_name: kafka-init-topics
+    container_name: kafka-init-topics-grad
     depends_on:
       - kafka
     command: "bash -c \
