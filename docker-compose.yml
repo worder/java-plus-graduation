@@ -32,16 +32,6 @@ services:
                              --bootstrap-server kafka:29092'"
     init: true
 
-  stat-db:
-    image: postgres:16.1
-    container_name: pg-stats
-    ports:
-      - "6541:5432"
-    environment:
-      - POSTGRES_DB=ewm
-      - POSTGRES_USER=ewm
-      - POSTGRES_PASSWORD=ewm
-
   user-db:
     image: postgres:16.1
     container_name: pg-users
@@ -77,6 +67,16 @@ services:
     container_name: pg-comment
     ports:
       - "6545:5432"
+    environment:
+      - POSTGRES_DB=ewm
+      - POSTGRES_USER=ewm
+      - POSTGRES_PASSWORD=ewm
+
+  stats-analyzer-db:
+    image: postgres:16.1
+    container_name: pg-stats-analyzer
+    ports:
+      - "6546:5432"
     environment:
       - POSTGRES_DB=ewm
       - POSTGRES_USER=ewm

@@ -33,6 +33,11 @@ public class AdminEventController {
         return eventService.getEventsByAdmin(users, states, categories, rangeStart, rangeEnd, from, size);
     }
 
+    @GetMapping("/{eventId}")
+    public EventFullDto getEvent(@PathVariable Long eventId) {
+        return eventService.getEventById(eventId);
+    }
+
     @PatchMapping("/{eventId}")
     public EventFullDto updateEvent(@PathVariable Long eventId,
                                     @RequestBody @Valid UpdateEventAdminRequest request) {

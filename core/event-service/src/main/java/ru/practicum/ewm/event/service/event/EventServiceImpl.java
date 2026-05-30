@@ -1,5 +1,7 @@
 package ru.practicum.ewm.event.service.event;
 
+import feign.FeignException;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
@@ -12,16 +14,22 @@ import ru.practicum.ewm.event.mapper.EventMapper;
 import ru.practicum.ewm.event.repository.category.CategoryDao;
 import ru.practicum.ewm.event.repository.event.EventDao;
 import ru.practicum.ewm.event.repository.event.EventQdslDao;
+import ru.practicum.ewm.interaction.client.request.RequestClient;
 import ru.practicum.ewm.interaction.client.user.UserClient;
 import ru.practicum.ewm.interaction.dto.category.CategoryDto;
 import ru.practicum.ewm.interaction.dto.event.*;
+import ru.practicum.ewm.interaction.dto.request.ParticipationRequestDto;
 import ru.practicum.ewm.interaction.dto.user.UserDto;
 import ru.practicum.ewm.interaction.enums.EventState;
+import ru.practicum.ewm.interaction.enums.ParticipationRequestStatus;
 import ru.practicum.ewm.interaction.error.exception.BadRequestException;
 import ru.practicum.ewm.interaction.error.exception.ConflictException;
 import ru.practicum.ewm.interaction.error.exception.NotFoundException;
 import ru.practicum.ewm.event.model.Category;
 import ru.practicum.ewm.event.model.Event;
+import ru.practicum.ewm.stats.client.analyzer.AnalyzerClient;
+import ru.practicum.ewm.stats.client.collector.CollectorClient;
+import ru.practicum.ewm.stats.messages.RecommendedEventProto;
 
 import java.time.LocalDateTime;
 import java.util.*;
@@ -36,6 +44,10 @@ public class EventServiceImpl implements EventService {
     private final EventQdslDao eventQdslDao;
     private final CategoryDao categoryDao;
     private final UserClient userClient;
+
+    private final CollectorClient collectorClient;
+    private final AnalyzerClient analyzerClient;
+    private final RequestClient requestClient;
 
     @Override
     @Transactional
@@ -83,6 +95,12 @@ public class EventServiceImpl implements EventService {
                         String.format("Событие с ID=%d пользователя с ID=%d не найдено", eventId, userId)));
 
         return this.mapToFullDto(event);
+    }
+
+    @Override
+    public EventFullDto getEventById(Long eventId) {
+        return eventDao.findById(eventId).map(this::mapToFullDto)
+                .orElseThrow(() -> new NotFoundException("Пользователь не найден"));
     }
 
     @Override
@@ -220,14 +238,14 @@ public class EventServiceImpl implements EventService {
         List<Event> events = eventQdslDao.findAllPublicByParams(text, categories, paid, rangeStart, rangeEnd, pageable);
         List<EventShortDto> eventShortDtos = this.mapToShortDtos(events);
         if (sort != null && sort.equals(EventSorting.VIEWS)) {
-            return eventShortDtos.stream().sorted(Comparator.comparing(EventShortDto::getViews).reversed()).toList();
+            return eventShortDtos.stream().sorted(Comparator.comparing(EventShortDto::getRating).reversed()).toList();
         }
 
         return eventShortDtos;
     }
 
     @Override
-    public EventFullDto getPublicEvent(Long id) {
+    public EventFullDto getPublicEvent(Long userId, Long id) {
         log.info("Получение публичного события с ID: {}", id);
 
         Event event = eventDao.findById(id)
@@ -237,6 +255,8 @@ public class EventServiceImpl implements EventService {
             throw new NotFoundException("Событие не опубликовано");
         }
 
+        collectorClient.sendView(userId, id);
+
         return this.mapToFullDto(event);
     }
 
@@ -245,20 +265,40 @@ public class EventServiceImpl implements EventService {
         EventMapper mapper = initMapperForEvents(events);
         List<EventShortDto> dtos = events.stream().map(mapper::mapToShortDto).toList();
 
-        LocalDateTime start = events.stream()
-                .map(Event::getPublishedOn)
-                .filter(Objects::nonNull)
-                .min(LocalDateTime::compareTo)
-                .orElse(null);
-
-//        statisticsClient.populateWithViews(start, dtos);
+        populateShortWithRating(dtos);
         return dtos;
+    }
+
+    @Override
+    public void likeEvent(Long userId, Long eventId) {
+        try {
+            ParticipationRequestDto request = requestClient.getEventParticipationRequest(userId, eventId);
+            if (!ParticipationRequestStatus.CONFIRMED.name().equals(request.getStatus())) {
+                throw new BadRequestException("User can only like attended events.");
+            }
+
+            collectorClient.sendLike(userId, eventId);
+        } catch (FeignException e) {
+            throw new EntityNotFoundException("Error calling request-service.");
+        }
+    }
+
+    @Override
+    public List<EventFullDto> getRecommendations(Long userId, Integer maxResults) {
+        List<Long> ids = analyzerClient.getRecommendations(userId, maxResults)
+                .stream()
+                .map(RecommendedEventProto::getEventId)
+                .toList();
+
+        List<Event> events = eventDao.findAllByIdIn(ids);
+        return this.mapToFullDtos(events);
     }
 
     private EventFullDto mapToFullDto(Event event) {
         EventMapper mapper = initMapperForEvents(List.of(event));
         EventFullDto dto = mapper.mapToFullDto(event);
-//        statisticsClient.populateWithViews(dto);
+
+        populateFullWithRating(List.of(dto));
         return dto;
     }
 
@@ -268,7 +308,7 @@ public class EventServiceImpl implements EventService {
                 .map(mapper::mapToFullDto)
                 .toList();
 
-//        statisticsClient.populateWithViews(dtos);
+        populateFullWithRating(dtos);
         return dtos;
     }
 
@@ -291,7 +331,7 @@ public class EventServiceImpl implements EventService {
 
     private Map<Long, CategoryDto> getCategoriesDtoForEvents(List<Event> events) {
         List<Long> categoryIds = events.stream().map(Event::getCategoryId).toList();
-        if  (categoryIds.isEmpty()) {
+        if (categoryIds.isEmpty()) {
             return Map.of();
         }
 
@@ -301,5 +341,20 @@ public class EventServiceImpl implements EventService {
                 .collect(Collectors.toMap(CategoryDto::getId, c -> c));
     }
 
+    private void populateFullWithRating(Collection<EventFullDto> dtos) {
+        List<Long> eventIds = dtos.stream().map(EventFullDto::getId).toList();
+        Map<Long, Double> interactions = analyzerClient.getInteractionsCount(eventIds);
+        for (EventFullDto dto : dtos) {
+            dto.setRating(interactions.get(dto.getId()));
+        }
+    }
+
+    private void populateShortWithRating(Collection<EventShortDto> dtos) {
+        List<Long> eventIds = dtos.stream().map(EventShortDto::getId).toList();
+        Map<Long, Double> interactions = analyzerClient.getInteractionsCount(eventIds);
+        for (EventShortDto dto : dtos) {
+            dto.setRating(interactions.get(dto.getId()));
+        }
+    }
 
 }

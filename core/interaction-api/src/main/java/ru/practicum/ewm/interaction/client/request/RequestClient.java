@@ -12,5 +12,5 @@ public interface RequestClient {
 
     @GetMapping("/users/{userId}/events/{eventId}/request")
     ParticipationRequestDto getEventParticipationRequest(@PathVariable Long userId,
-                                                                @PathVariable Long eventId);
+                                                         @PathVariable Long eventId);
 }

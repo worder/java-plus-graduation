@@ -18,6 +18,7 @@ import ru.practicum.ewm.interaction.error.exception.NotFoundException;
 import ru.practicum.ewm.request.mapper.ParticipationRequestMapper;
 import ru.practicum.ewm.request.model.ParticipationRequest;
 import ru.practicum.ewm.request.repository.ParticipationRequestDao;
+import ru.practicum.ewm.stats.client.collector.CollectorClient;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -30,6 +31,8 @@ public class ParticipationRequestServiceImpl implements ParticipationRequestServ
     private final UserClient userClient;
     private final EventClient eventClient;
     private final ParticipationRequestDao participationRequestDao;
+
+    private final CollectorClient collectorClient;
 
     @Override
     public ParticipationRequestDto createEventParticipationRequest(Long userId, Long eventId) {
@@ -80,6 +83,8 @@ public class ParticipationRequestServiceImpl implements ParticipationRequestServ
             updateRequest.setConfirmedRequests(event.getConfirmedRequests() + 1);
             eventClient.updateEvent(event.getId(), updateRequest);
         }
+
+        collectorClient.sendRegistration(userId, eventId);
 
         return ParticipationRequestMapper.mapToParticipationRequestDto(savedModel);
     }
