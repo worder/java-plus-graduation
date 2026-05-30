@@ -20,6 +20,8 @@ import java.util.stream.Collectors;
 @Component
 @RequiredArgsConstructor
 public class RecommendationsHandlerImpl implements RecommendationsHandler {
+    private static final int K_NEIGHBOURS = 10;
+
     private final UserActionRepository actionRepository;
     private final EventSimilarityRepository similarityRepository;
 
@@ -62,8 +64,8 @@ public class RecommendationsHandlerImpl implements RecommendationsHandler {
             return List.of();
         }
 
-        // 5. Map: recommendedEventId -> list of similarities related to viewed events
-        Map<Long, List<EventSimilarity>> similaritiesMap = new HashMap<>();
+        // 5. Candidate event -> similarities with viewed events.
+        Map<Long, List<EventSimilarity>> candidateSimilarities = new HashMap<>();
 
         for (EventSimilarity similarity : similarities) {
             Long eventA = similarity.getEventA();
@@ -74,31 +76,36 @@ public class RecommendationsHandlerImpl implements RecommendationsHandler {
 
             // A viewed -> B is a candidate
             if (aViewed && !bViewed) {
-                similaritiesMap
+                candidateSimilarities
                         .computeIfAbsent(eventB, k -> new ArrayList<>())
                         .add(similarity);
             }
 
             // B viewed -> A is a candidate
             if (bViewed && !aViewed) {
-                similaritiesMap
+                candidateSimilarities
                         .computeIfAbsent(eventA, k -> new ArrayList<>())
                         .add(similarity);
             }
         }
 
         // 6. Calculate the recommendation score
-        return similaritiesMap.entrySet().stream()
+        return candidateSimilarities.entrySet().stream()
                 .map(entry -> {
-                    Long recommendedEventId = entry.getKey();
-                    Double score = calculateScore(
-                            entry.getValue(),
+                    // Select only K nearest neighbours for the candidate.
+                    List<EventSimilarity> topKNeighbours = entry.getValue().stream()
+                            .sorted(Comparator.comparing(EventSimilarity::getScore).reversed())
+                            .limit(K_NEIGHBOURS)
+                            .toList();
+
+                    double score = calculateScore(
+                            topKNeighbours,
                             interactedEventIds,
                             actionWeights
                     );
 
                     return RecommendedEventProto.newBuilder()
-                            .setEventId(recommendedEventId)
+                            .setEventId(entry.getKey())
                             .setScore(score)
                             .build();
                 })
@@ -140,11 +147,9 @@ public class RecommendationsHandlerImpl implements RecommendationsHandler {
             scoreSum += similarityScore;
         }
 
-        if (scoreSum == 0.0) {
-            return 0.0;
-        }
-
-        return weightedSum / scoreSum;
+        return scoreSum == 0.0
+                ? 0.0
+                : weightedSum / scoreSum;
     }
 
     @Override
@@ -192,7 +197,7 @@ public class RecommendationsHandlerImpl implements RecommendationsHandler {
         // We search for all connections where eventId is either A or B.
         List<EventSimilarity> similarities = similarityRepository.findAllByEventId(
                 eventId,
-                PageRequest.of(0, limit * 5, Sort.by(Sort.Direction.DESC, "score"))
+                PageRequest.of(0, limit, Sort.by(Sort.Direction.DESC, "score"))
         );
 
         if (similarities.isEmpty()) {

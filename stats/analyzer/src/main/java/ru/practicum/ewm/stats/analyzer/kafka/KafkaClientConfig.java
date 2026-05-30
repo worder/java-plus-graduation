@@ -18,13 +18,16 @@ public class KafkaClientConfig {
     @Value("${app.kafka.consumer.bootstrap-servers}")
     private String bootstrapServers;
 
-    @Value("${app.kafka.consumer.group-id}")
-    private String consumerGroupId;
+    @Value("${app.kafka.consumer.group-id.user-action}")
+    private String consumerGroupIdUserAction;
+
+    @Value("${app.kafka.consumer.group-id.event-similarity}")
+    private String consumerGroupIdEventSimilarity;
 
     @Bean
     public Properties getKafkaConsumerUserActionProperties() {
         Properties config = new Properties();
-        config.put(ConsumerConfig.GROUP_ID_CONFIG, consumerGroupId);
+        config.put(ConsumerConfig.GROUP_ID_CONFIG, consumerGroupIdUserAction);
         config.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
         config.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, LongDeserializer.class);
         config.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, UserActionAvroDeserializer.class);
@@ -35,7 +38,7 @@ public class KafkaClientConfig {
     @Bean
     public Properties getKafkaConsumerEventSimilarityProperties() {
         Properties config = new Properties();
-        config.put(ConsumerConfig.GROUP_ID_CONFIG, consumerGroupId);
+        config.put(ConsumerConfig.GROUP_ID_CONFIG, consumerGroupIdEventSimilarity);
         config.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
         config.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, LongDeserializer.class);
         config.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, EventSimilarityAvroDeserializer.class);

@@ -84,20 +84,17 @@ public class AnalyzerKafkaStarter implements CommandLineRunner {
                 log.info("Received {} UserAction records.", records.count());
 
                 // Process the batch of records
-                records.forEach(record -> {
-                    try {
-                        UserActionAvro action = record.value();
-                        // Call the business logic service
-                        analyzerService.analyzeUserAction(action);
+                try {
+                    for (var record : records) {
+                        analyzerService.analyzeUserAction(record.value());
                         log.debug("Processed UserAction record key: {}", record.key());
-                    } catch (Exception e) {
-                        log.error("Error processing UserAction record (key: {}). Skipping record.", record.key(), e);
                     }
-                });
 
-                // Commit offsets only after the entire batch is successfully processed
-                consumer.commitSync();
-                log.info("Successfully committed offset for UserAction batch.");
+                    consumer.commitSync();
+                    log.info("Successfully committed offset for UserAction batch.");
+                } catch (Exception e) {
+                    log.error("Failed to process UserAction batch. Batch will be reprocessed.", e);
+                }
             }
         } catch (Exception e) {
             log.error("Fatal error in UserAction consumer loop. Stopping consumer.", e);
@@ -135,20 +132,18 @@ public class AnalyzerKafkaStarter implements CommandLineRunner {
                 log.info("Received {} EventSimilarity records.", records.count());
 
                 // Process the batch of records
-                records.forEach(record -> {
-                    try {
+                try {
+                    for (var record : records) {
                         EventSimilarityAvro similarity = record.value();
-                        // Call the business logic service
                         analyzerService.analyzeEventSimilarity(similarity);
                         log.debug("Processed EventSimilarity record key: {}", record.key());
-                    } catch (Exception e) {
-                        log.error("Error processing EventSimilarity record (key: {}). Skipping record.", record.key(), e);
                     }
-                });
 
-                // Commit offsets only after the entire batch is successfully processed
-                consumer.commitSync();
-                log.info("Successfully committed offset for EventSimilarity batch.");
+                    consumer.commitSync();
+                    log.info("Successfully committed offset for EventSimilarity batch.");
+                } catch (Exception e) {
+                    log.error("Failed to process EventSimilarity batch. Batch will be reprocessed.", e);
+                }
             }
         } catch (Exception e) {
             log.error("Fatal error in EventSimilarity consumer loop. Stopping consumer.", e);

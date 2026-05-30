@@ -1,7 +1,6 @@
 package ru.practicum.ewm.event.service.event;
 
 import feign.FeignException;
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
@@ -11,6 +10,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.ewm.event.mapper.CategoryMapper;
 import ru.practicum.ewm.event.mapper.EventMapper;
+import ru.practicum.ewm.event.model.Category;
+import ru.practicum.ewm.event.model.Event;
 import ru.practicum.ewm.event.repository.category.CategoryDao;
 import ru.practicum.ewm.event.repository.event.EventDao;
 import ru.practicum.ewm.event.repository.event.EventQdslDao;
@@ -25,8 +26,6 @@ import ru.practicum.ewm.interaction.enums.ParticipationRequestStatus;
 import ru.practicum.ewm.interaction.error.exception.BadRequestException;
 import ru.practicum.ewm.interaction.error.exception.ConflictException;
 import ru.practicum.ewm.interaction.error.exception.NotFoundException;
-import ru.practicum.ewm.event.model.Category;
-import ru.practicum.ewm.event.model.Event;
 import ru.practicum.ewm.stats.client.analyzer.AnalyzerClient;
 import ru.practicum.ewm.stats.client.collector.CollectorClient;
 import ru.practicum.ewm.stats.messages.RecommendedEventProto;
@@ -120,9 +119,8 @@ public class EventServiceImpl implements EventService {
             throw new BadRequestException("Дата события должна быть не ранее чем за 2 часа от текущего момента");
         }
 
-        Category category = null;
         if (request.getCategory() != null) {
-            category = categoryDao.findById(request.getCategory())
+            categoryDao.findById(request.getCategory())
                     .orElseThrow(() -> new NotFoundException("Категория с ID=" + request.getCategory() + " не найдена"));
         }
 
@@ -205,7 +203,7 @@ public class EventServiceImpl implements EventService {
         EventMapper.updateEventFromAdminRequest(event, request);
 
         Event updatedEvent = eventDao.save(event);
-        log.info("Событие с ID: {} обновлено администратором; {}", eventId, event.toString());
+        log.info("Событие с ID: {} обновлено администратором; {}", eventId, event);
 
         return this.mapToFullDto(updatedEvent);
     }
@@ -279,7 +277,7 @@ public class EventServiceImpl implements EventService {
 
             collectorClient.sendLike(userId, eventId);
         } catch (FeignException e) {
-            throw new EntityNotFoundException("Error calling request-service.");
+            throw new BadRequestException("Error calling request-service.");
         }
     }
 
@@ -291,7 +289,17 @@ public class EventServiceImpl implements EventService {
                 .toList();
 
         List<Event> events = eventDao.findAllByIdIn(ids);
-        return this.mapToFullDtos(events);
+
+        List<EventFullDto> dtos = new ArrayList<>(this.mapToFullDtos(events));
+
+        Map<Long, Integer> order = new HashMap<>();
+        for (int i = 0; i < ids.size(); i++) {
+            order.put(ids.get(i), i);
+        }
+
+        dtos.sort(Comparator.comparingInt(dto -> order.getOrDefault(dto.getId(), Integer.MAX_VALUE)));
+
+        return dtos;
     }
 
     private EventFullDto mapToFullDto(Event event) {
