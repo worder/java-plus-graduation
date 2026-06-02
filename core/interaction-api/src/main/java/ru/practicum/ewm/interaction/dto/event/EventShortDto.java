@@ -26,6 +26,6 @@ public class EventShortDto {
     private LocalDateTime eventDate;
 
     private Boolean paid;
-    private Integer views;
+    private Double rating;
     private Integer confirmedRequests;
 }

@@ -41,5 +41,5 @@ public class EventFullDto {
     private Boolean requestModeration;
 
     @Builder.Default
-    private Integer views = 0;
+    private Double rating = 0.0;
 }

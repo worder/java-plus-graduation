@@ -8,7 +8,6 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.ewm.event.service.event.EventService;
-import ru.practicum.ewm.interaction.client.statistics.StatisticsClient;
 import ru.practicum.ewm.interaction.dto.event.EventFullDto;
 import ru.practicum.ewm.interaction.dto.event.EventShortDto;
 
@@ -21,7 +20,6 @@ import java.util.List;
 @Validated
 public class PublicEventController {
     private final EventService eventService;
-    private final StatisticsClient statisticsService;
 
     @GetMapping
     public List<EventShortDto> getEvents(
@@ -35,15 +33,26 @@ public class PublicEventController {
             @RequestParam(defaultValue = "0") @PositiveOrZero Integer from,
             @RequestParam(defaultValue = "10") @Positive Integer size,
             HttpServletRequest httpRequest) {
-        statisticsService.saveHit(httpRequest);
         return eventService.getPublicEvents(text, categories, paid, rangeStart, rangeEnd,
                 onlyAvailable, sort, from, size);
     }
 
     @GetMapping("/{id}")
-    public EventFullDto getEvent(@PathVariable Long id,
+    public EventFullDto getEvent(@RequestHeader("X-EWM-USER-ID") long userId,
+                                 @PathVariable Long id,
                                  HttpServletRequest httpRequest) {
-        statisticsService.saveHit(httpRequest);
-        return eventService.getPublicEvent(id);
+        return eventService.getPublicEvent(userId, id);
+    }
+
+    @GetMapping("/recommendations")
+    public List<EventFullDto> getRecommendations(@RequestHeader("X-EWM-USER-ID") long userId,
+                                                 @RequestParam int maxResults) {
+        return eventService.getRecommendations(userId, maxResults);
+    }
+
+    @PutMapping("/{eventId}/like")
+    public void likeEvent(@RequestHeader("X-EWM-USER-ID") long userId,
+                          @PathVariable long eventId) {
+        eventService.likeEvent(userId, eventId);
     }
 }

@@ -13,7 +13,7 @@ import ru.practicum.ewm.interaction.dto.event.UpdateEventAdminRequest;
         name = "event-service",
         configuration = EventClientConfig.class)
 public interface EventClient {
-    @GetMapping("/events/{eventId}")
+    @GetMapping("/admin/events/{eventId}")
     EventFullDto getEvent(@PathVariable Long eventId);
 
     @PatchMapping("/admin/events/{eventId}")

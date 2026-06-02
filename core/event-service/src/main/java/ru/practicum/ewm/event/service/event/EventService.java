@@ -18,6 +18,8 @@ public interface EventService {
 
     EventFullDto getUserEvent(Long userId, Long eventId);
 
+    EventFullDto getEventById(Long eventId);
+
     EventFullDto updateEventByUser(Long userId, Long eventId, UpdateEventUserRequest request);
 
     List<EventFullDto> getEventsByAdmin(List<Long> users, List<String> states, List<Long> categories,
@@ -31,7 +33,11 @@ public interface EventService {
                                         Boolean onlyAvailable, EventSorting sort,
                                         Integer from, Integer size);
 
-    EventFullDto getPublicEvent(Long id);
+    EventFullDto getPublicEvent(Long userId, Long id);
 
     List<EventShortDto> mapToShortDtos(List<Event> events);
+
+    void likeEvent(Long userId, Long eventId);
+
+    List<EventFullDto> getRecommendations(Long userId, Integer maxResults);
 }
